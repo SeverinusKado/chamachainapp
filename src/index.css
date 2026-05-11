@@ -1,0 +1,241 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* ── Palette (hex, for reference and inline use) ─── */
+    --midnight: #0f0f1a;
+    --dark-navy: #1a1a2e;
+    --violet:   #7c3aed;
+    --cyan:     #22d3ee;
+    --lavender: #a78bfa;
+
+    /* ── RGB channels (space-separated for Tailwind opacity support) ── */
+    --pale-sky:       226 232 240;   /* body text  #e2e8f0 */
+    --cool-steel:     167 139 250;   /* lavender   #a78bfa */
+    --air-force-blue: 34 211 238;    /* cyan       #22d3ee */
+    --sea-green:      124 58 237;    /* violet     #7c3aed */
+    --dark-spruce:    15 15 26;      /* midnight   #0f0f1a */
+
+    /* ── Semantic tokens ──────────────────────────────── */
+    --background:             15 15 26;
+    --foreground:             226 232 240;
+    --card:                   26 26 46;
+    --card-foreground:        226 232 240;
+    --popover:                26 26 46;
+    --popover-foreground:     226 232 240;
+    --primary:                124 58 237;
+    --primary-foreground:     255 255 255;
+    --secondary:              26 26 46;
+    --secondary-foreground:   226 232 240;
+    --muted:                  26 26 46;
+    --muted-foreground:       167 139 250;
+    --accent:                 34 211 238;
+    --accent-foreground:      15 15 26;
+    --destructive:            239 68 68;
+    --destructive-foreground: 255 255 255;
+    --border:                 124 58 237;
+    --input:                  26 26 46;
+    --ring:                   124 58 237;
+    --radius:                 0.75rem;
+
+    /* ── Sidebar ──────────────────────────────────────── */
+    --sidebar-background:         26 26 46;
+    --sidebar-foreground:         226 232 240;
+    --sidebar-primary:            124 58 237;
+    --sidebar-primary-foreground: 255 255 255;
+    --sidebar-accent:             34 211 238;
+    --sidebar-accent-foreground:  15 15 26;
+    --sidebar-border:             124 58 237;
+    --sidebar-ring:               124 58 237;
+
+    /* ── Gradients ────────────────────────────────────── */
+    --gradient-main:    linear-gradient(135deg, #0f0f1a, #1a1a2e);
+    --gradient-hero:    linear-gradient(135deg, #0f0f1a, #1a1a2e);
+    --gradient-surface: linear-gradient(180deg, #1a1a2e, #0f0f1a);
+    --gradient-glow:    linear-gradient(135deg, #7c3aed, #a78bfa);
+
+    /* ── Shadows ──────────────────────────────────────── */
+    --shadow-sm:          0 2px 8px rgba(15, 15, 26, 0.5);
+    --shadow-md:          0 4px 16px rgba(15, 15, 26, 0.6);
+    --shadow-lg:          0 8px 32px rgba(15, 15, 26, 0.7);
+    --shadow-glow:        0 0 20px rgba(124, 58, 237, 0.3);
+    --shadow-glow-strong: 0 0 40px rgba(124, 58, 237, 0.5);
+
+    /* ── Transitions ──────────────────────────────────── */
+    --transition-fast:   all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-spring: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+}
+
+@layer base {
+  * {
+    border-color: rgb(var(--border) / 0.2);
+  }
+
+  body {
+    background-color: rgb(var(--background));
+    color: rgb(var(--foreground));
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    background: linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-hero {
+    background: linear-gradient(135deg, #ffffff 0%, #a78bfa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Card surface: dark-navy bg + subtle violet border */
+  .bg-surface {
+    background: #1a1a2e;
+    border: 1px solid rgba(124, 58, 237, 0.2);
+  }
+
+  /* Elevated surface: same bg, stronger violet border */
+  .bg-surface-elevated {
+    background: #1a1a2e;
+    border: 1px solid rgba(124, 58, 237, 0.45);
+  }
+
+  /* Glass overlay: semi-transparent dark-navy */
+  .bg-glass {
+    background: rgba(26, 26, 46, 0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(124, 58, 237, 0.15);
+  }
+
+  .glow-primary {
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.3);
+  }
+
+  .glow-strong {
+    box-shadow: 0 0 40px rgba(124, 58, 237, 0.5);
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-pulse-soft {
+    animation: pulse-soft 3s ease-in-out infinite;
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2.5s ease-in-out infinite;
+  }
+}
+
+/* ── Animations ─────────────────────────────────────────── */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-12px); }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.7; }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ── Wallet Adapter Overrides (violet theme) ──────────────── */
+.wallet-adapter-button-trigger {
+  background: #7c3aed !important;
+  color: #ffffff !important;
+  border-radius: 0.75rem !important;
+  font-weight: 600 !important;
+  font-size: 0.875rem !important;
+  padding: 0.625rem 1.25rem !important;
+  border: 1px solid rgba(124, 58, 237, 0.5) !important;
+  box-shadow: 0 0 20px rgba(124, 58, 237, 0.25) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  height: auto !important;
+  line-height: 1.4 !important;
+}
+
+.wallet-adapter-button-trigger:hover {
+  background: #6d28d9 !important;
+  box-shadow: 0 0 30px rgba(124, 58, 237, 0.45) !important;
+  transform: translateY(-1px) !important;
+}
+
+.wallet-adapter-button-trigger:active {
+  transform: translateY(0) !important;
+}
+
+.wallet-adapter-modal-wrapper {
+  background: #1a1a2e !important;
+  border: 1px solid rgba(124, 58, 237, 0.3) !important;
+  border-radius: 1rem !important;
+}
+
+.wallet-adapter-modal-title {
+  color: #e2e8f0 !important;
+}
+
+.wallet-adapter-modal-list .wallet-adapter-button {
+  color: #e2e8f0 !important;
+}
+
+.wallet-adapter-modal-button-close {
+  background: rgba(124, 58, 237, 0.15) !important;
+}
+
+.wallet-adapter-modal-button-close svg {
+  fill: #a78bfa !important;
+}
+
+.wallet-adapter-dropdown-list {
+  background: #1a1a2e !important;
+  border: 1px solid rgba(124, 58, 237, 0.3) !important;
+  border-radius: 0.75rem !important;
+}
+
+.wallet-adapter-dropdown-list-item {
+  color: #e2e8f0 !important;
+}
+
+.wallet-adapter-dropdown-list-item:hover {
+  background: rgba(124, 58, 237, 0.15) !important;
+}
+
+/* ── Custom scrollbar ─────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0f0f1a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(124, 58, 237, 0.4);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(124, 58, 237, 0.65);
+}
