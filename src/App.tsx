@@ -2,11 +2,11 @@ import { useMemo } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
-import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
-import { clusterApiUrl } from '@solana/web3.js';
-import { ChamaProvider } from '@/lib/chama-store';
+import { AuthProvider } from '@/lib/auth';
+import { ThemeProvider } from '@/lib/theme';
+import { NETWORK, RPC_ENDPOINT } from '@/lib/program/cluster';
 
 import Index from './pages/Index';
 import Dashboard from './pages/Dashboard';
@@ -18,15 +18,15 @@ import NotFound from './pages/NotFound';
 import '@solana/wallet-adapter-react-ui/styles.css';
 
 const App = () => {
-    const network = WalletAdapterNetwork.Devnet;
-    const endpoint = useMemo(() => clusterApiUrl(network), [network]);
-    const wallets = useMemo(() => [new PhantomWalletAdapter()], []);
+    const endpoint = RPC_ENDPOINT;
+    const wallets = useMemo(() => [new PhantomWalletAdapter({ network: NETWORK })], []);
 
     return (
+        <ThemeProvider>
         <ConnectionProvider endpoint={endpoint}>
             <WalletProvider wallets={wallets} autoConnect>
                 <WalletModalProvider>
-                    <ChamaProvider>
+                    <AuthProvider>
                         <Routes>
                             <Route path="/" element={<Index />} />
                             <Route path="/dashboard" element={<Dashboard />} />
@@ -36,10 +36,11 @@ const App = () => {
                             <Route path="*" element={<NotFound />} />
                         </Routes>
                         <Toaster />
-                    </ChamaProvider>
+                    </AuthProvider>
                 </WalletModalProvider>
             </WalletProvider>
         </ConnectionProvider>
+        </ThemeProvider>
     );
 };
 

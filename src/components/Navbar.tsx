@@ -1,18 +1,20 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { Link2, LayoutDashboard, User, Plus, Menu, X } from "lucide-react";
+import { Link2, LayoutDashboard, User, Plus, Menu, X, Sun, Moon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import WalletAuthButton from "@/components/WalletAuthButton";
+import { useAuth } from "@/lib/auth";
+import { useTheme } from "@/lib/theme";
 
 const Navbar: React.FC = () => {
-  const { connected } = useWallet();
+  const { authenticated } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = React.useState(false);
 
   const navLinks = [
     { to: "/", label: "Home", icon: Link2 },
-    ...(connected
+    ...(authenticated
       ? [
           { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
           { to: "/create", label: "Create", icon: Plus },
@@ -28,8 +30,12 @@ const Navbar: React.FC = () => {
       <div className="container mx-auto flex items-center justify-between py-3 px-4">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 group">
-          <img src="/chamachain-logo-transparent.png" alt="ChamaChain Logo" className="w-8 h-8 object-contain" />
-          <span className="text-lg font-bold text-pale-sky hidden sm:block">
+          <img
+            src="/chamachain-logo-transparent.png"
+            alt="ChamaChain Logo"
+            className="w-8 h-8 object-contain transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
+          />
+          <span className="font-display text-lg font-bold tracking-tight text-pale-sky hidden sm:block">
             Chama<span className="text-sea-green">Chain</span>
           </span>
         </Link>
@@ -56,9 +62,16 @@ const Navbar: React.FC = () => {
           })}
         </div>
 
-        {/* Wallet + Mobile */}
-        <div className="flex items-center gap-3">
-          <WalletMultiButton />
+        {/* Theme + Wallet + Mobile */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          <button
+            onClick={toggleTheme}
+            aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            className="p-2 rounded-lg text-cool-steel hover:text-pale-sky hover:bg-primary/10 transition-colors"
+          >
+            {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          </button>
+          <WalletAuthButton />
           <button
             className="md:hidden p-2 rounded-lg text-cool-steel hover:text-pale-sky hover:bg-primary/10 transition-colors"
             onClick={() => setMobileOpen(!mobileOpen)}

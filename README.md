@@ -1,32 +1,13 @@
 # ChamaChain
 
-A decentralised savings platform that digitises the traditional African rotating savings group where members make regular fixed contributions and each member receives the full pool on a rotating basis. 
+A decentralised rotating savings platform on Solana.
 
-## How It Works
-
-1. **A member creates a chama**, setting the contribution amount (in USDC), cycle duration, maximum members, and payout rotation order.
-2. **Members join**, by connecting their Solana wallet and agreeing to the terms locked in the smart contract.
-3. **Each cycle**, every member contributes their fixed amount to the on-chain vault before the deadline.
-4. **At the end of the cycle**, the smart contract automatically releases the full vault balance to the designated recipient for that round.
-5. **Rotation continues** until every member has received a payout, completing the chama.
-6. **Reputation is updated**, on-time contributors gain score, defaults are recorded and visible to future chama invitations.
-
-## Tech Stack
-
-- React 
-- TypeScript
-- Vite 
-- Tailwind CSS
-- Solana JSON RPC
-
-## Getting started
-
-### Prerequisites
+## Requirements
 
 - Node.js 18+
-- A Solana wallet browser extension, [Phantom](https://phantom.app) or [Solflare](https://solflare.com)
+- A Solana wallet extension ([Phantom](https://phantom.app) or [Solflare](https://solflare.com))
 
-### Installation
+## Setup
 
 ```bash
 git clone https://github.com/SeverinusKado/chamachainapp.git
@@ -35,11 +16,16 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173) in your browser and connect your wallet.
+Open http://localhost:5173 and connect your wallet.
 
-### Build
+The app runs on Solana devnet, so set your wallet to **Devnet** and grab test SOL from the in-app faucet.
+
+## Scripts
 
 ```bash
-npm run build
+npm run dev        
+npm run build      
+npm run preview    
+npm run lint      
+npm run typecheck  
 ```
-

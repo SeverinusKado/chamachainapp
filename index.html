@@ -4,6 +4,30 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ChamaChain - Trustless Savings Circles on Solana</title>
+    <meta name="description" content="ChamaChain brings community savings circles on-chain. Contribute, rotate payouts, and build trust trustlessly, on Solana." />
+    <meta name="theme-color" content="#f6f7f9" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0d1115" media="(prefers-color-scheme: dark)" />
+
+    <link rel="icon" type="image/png" href="/chamachain-logo-transparent.png" />
+    <link rel="apple-touch-icon" href="/chamachain-logo-transparent.png" />
+
+    <!-- Premium type: Space Grotesk (display) · Inter (body) · JetBrains Mono (figures) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      // Set theme before paint to avoid a flash of the wrong mode.
+      // Default is light (institutional first impression); dark is opt-in.
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          if (stored === 'dark') document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

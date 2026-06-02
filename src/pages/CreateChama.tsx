@@ -1,20 +1,23 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { motion } from "framer-motion";
-import { Plus, Wallet, Copy, Check, ArrowLeft } from "lucide-react";
+import { Plus, Copy, Check, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
+import { BN } from "@coral-xyz/anchor";
 import Layout from "@/components/Layout";
+import SignInGate from "@/components/SignInGate";
 import { useToast } from "@/hooks/use-toast";
-import { Keypair } from "@solana/web3.js";
-import { useChamaStore } from "@/lib/chama-store";
-import type { Chama } from "@/lib/mock-data";
+import { useAuth } from "@/lib/auth";
+import { isSignableWallet } from "@/lib/program/client";
+import { createChama } from "@/lib/program/instructions";
 
 const CreateChama: React.FC = () => {
-  const { connected, publicKey } = useWallet();
+  const wallet = useWallet();
+  const { authenticated } = useAuth();
+  const { connection } = useConnection();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { addChama } = useChamaStore();
 
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
@@ -36,64 +39,48 @@ const CreateChama: React.FC = () => {
       return;
     }
 
-    setSubmitting(true);
+    if (!isSignableWallet(wallet)) {
+      toast({
+        title: "Wallet Not Connected",
+        description: "Connect a wallet that can sign transactions.",
+        variant: "destructive",
+      });
+      return;
+    }
 
+    setSubmitting(true);
     toast({
       title: "Transaction Pending",
-      description: "Creating your chama on Solana...",
+      description: "Creating your chama on Solana devnet...",
     });
 
-    await new Promise((r) => setTimeout(r, 2000));
+    try {
+      // Creator-scoped u64 id; lets one wallet run multiple chamas.
+      const id = new BN(Date.now());
+      const { chama } = await createChama(connection, wallet, {
+        id,
+        name,
+        contributionWhole: Number(amount),
+        cycleDurationDays: Number(duration),
+        maxMembers: Number(maxMembers),
+      });
 
-    const newId = `chama_${name.toLowerCase().replace(/\s+/g, "_")}_${Date.now().toString(36)}`;
-    const walletAddr = publicKey?.toString() ?? "unknown";
-    const now = new Date().toISOString();
-    const nextPayout = new Date(
-      Date.now() + Number(duration) * 24 * 60 * 60 * 1000
-    ).toISOString();
-    const totalRounds = Number(maxMembers);
-
-    const newChama: Chama = {
-      id: newId,
-      name,
-      contributionAmount: Number(amount),
-      cycleDurationDays: Number(duration),
-      maxMembers: Number(maxMembers),
-      currentRound: 1,
-      totalRounds,
-      vaultBalance: 0,
-      creator: walletAddr,
-      createdAt: now,
-      nextPayoutDate: nextPayout,
-      members: [
-        {
-          wallet: walletAddr,
-          reputationScore: 100,
-          totalContributed: 0,
-          cyclesCompleted: 0,
-          defaults: 0,
-          statusThisCycle: "pending",
-          joinedAt: now,
-        },
-      ],
-      rounds: Array.from({ length: totalRounds }, (_, i) => ({
-        roundNumber: i + 1,
-        recipientWallet: i === 0 ? walletAddr : "TBD",
-        status: (i === 0 ? "current" : "upcoming") as "current" | "upcoming",
-      })),
-    };
-
-    const vaultKeypair = Keypair.generate();
-    addChama(newChama, Array.from(vaultKeypair.secretKey));
-    setChamaId(newId);
-
-    toast({
-      title: "Chama Created",
-      description: `${name} has been created successfully.`,
-    });
-
-    setSubmitting(false);
-    setCreated(true);
+      setChamaId(chama.toBase58());
+      toast({
+        title: "Chama Created",
+        description: `${name} is live on-chain.`,
+      });
+      setCreated(true);
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: "Transaction Failed",
+        description: err instanceof Error ? err.message : "Could not create chama.",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleCopy = () => {
@@ -103,16 +90,8 @@ const CreateChama: React.FC = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  if (!connected) {
-    return (
-      <Layout>
-        <div className="container mx-auto px-4 py-20 text-center">
-          <Wallet className="w-12 h-12 text-cool-steel mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-pale-sky mb-2">Wallet Not Connected</h2>
-          <p className="text-cool-steel text-sm">Connect your wallet to create a chama.</p>
-        </div>
-      </Layout>
-    );
+  if (!authenticated) {
+    return <SignInGate action="create a chama" />;
   }
 
   if (created) {

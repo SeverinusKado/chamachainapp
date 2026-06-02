@@ -18,6 +18,7 @@ export default {
 		extend: {
 			fontFamily: {
 				sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+				display: ['Space Grotesk', 'Inter', 'system-ui', 'sans-serif'],
 				mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
 			},
 			colors: {
@@ -100,8 +101,8 @@ export default {
 					to:   { opacity: '1', transform: 'scale(1)' }
 				},
 				'glow-pulse': {
-					'0%, 100%': { boxShadow: '0 0 20px rgba(124, 58, 237, 0.3)' },
-					'50%':       { boxShadow: '0 0 40px rgba(124, 58, 237, 0.6)' }
+					'0%, 100%': { boxShadow: '0 6px 20px rgb(var(--primary) / 0.18)' },
+					'50%':       { boxShadow: '0 10px 30px rgb(var(--primary) / 0.30)' }
 				},
 				'count-up': {
 					from: { opacity: '0', transform: 'translateY(8px)' },

@@ -27,7 +27,7 @@ const Footer: React.FC = () => {
             </Link>
           </div>
           <p className="text-xs text-muted-foreground">
-            Built on Solana Devnet
+            Built on Solana
           </p>
         </div>
       </div>

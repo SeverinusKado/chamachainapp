@@ -1,0 +1,162 @@
+/**
+ * Per-cluster bootstrap for ChamaChain v2.
+ *
+ *   1. Resolves the target cluster (devnet | mainnet) from CLUSTER env.
+ *   2. USDT mint:
+ *        - devnet:  creates a mock 6-decimal "USDT" mint whose authority is a
+ *          dedicated faucet keypair (its secret is shipped to the frontend so
+ *          the in-app faucet can hand out test USDT — worthless on devnet).
+ *        - mainnet: uses the REAL USDT mint supplied via USDT_MINT env; no
+ *          faucet keypair is created and none is shipped.
+ *   3. Runs `initialize_protocol`, creating the global Config PDA and the
+ *      program-owned CHM share-token mint, registering the USDT mint.
+ *   4. Writes src/lib/program/clusters/<cluster>.ts (a ClusterConfig object).
+ *
+ * Run from the anchor workspace:
+ *   # devnet (default)
+ *   ANCHOR_PROVIDER_URL=https://api.devnet.solana.com \
+ *   ANCHOR_WALLET=$HOME/.config/solana/id.json \
+ *   yarn ts-node scripts/bootstrap.ts
+ *
+ *   # mainnet (gated — only after Gate 1 + Gate 2)
+ *   CLUSTER=mainnet USDT_MINT=<real mainnet USDT mint> \
+ *   ANCHOR_PROVIDER_URL=https://api.mainnet-beta.solana.com \
+ *   ANCHOR_WALLET=$HOME/.config/solana/mainnet.json \
+ *   yarn ts-node scripts/bootstrap.ts
+ */
+import * as anchor from "@coral-xyz/anchor";
+import { createMint } from "@solana/spl-token";
+import { Keypair, PublicKey } from "@solana/web3.js";
+import * as fs from "fs";
+import * as path from "path";
+
+const TOKEN_DECIMALS = 6;
+
+type ClusterName = "devnet" | "mainnet";
+
+const RPC_ENDPOINTS: Record<ClusterName, string> = {
+  devnet: "https://api.devnet.solana.com",
+  mainnet: "https://api.mainnet-beta.solana.com",
+};
+
+async function main() {
+  const cluster = (process.env.CLUSTER ?? "devnet") as ClusterName;
+  if (cluster !== "devnet" && cluster !== "mainnet") {
+    throw new Error(`Unknown CLUSTER "${cluster}". Expected "devnet" or "mainnet".`);
+  }
+  console.log("Target    :", cluster);
+
+  const provider = anchor.AnchorProvider.env();
+  anchor.setProvider(provider);
+
+  const idl = JSON.parse(
+    fs.readFileSync(path.join(__dirname, "../target/idl/chamachain.json"), "utf8"),
+  );
+  const program = new anchor.Program(idl, provider);
+  const programId = program.programId;
+  const authority = provider.wallet.publicKey;
+
+  console.log("Cluster   :", provider.connection.rpcEndpoint);
+  console.log("Authority :", authority.toBase58());
+  console.log("Program   :", programId.toBase58());
+
+  // --- PDAs ---
+  const [configPda] = PublicKey.findProgramAddressSync(
+    [Buffer.from("config")],
+    programId,
+  );
+  const [mintAuthPda] = PublicKey.findProgramAddressSync(
+    [Buffer.from("mint_authority")],
+    programId,
+  );
+  const [chmMintPda] = PublicKey.findProgramAddressSync(
+    [Buffer.from("chm_mint")],
+    programId,
+  );
+
+  // --- 1. USDT mint ---
+  // devnet: create a mock mint with a shippable faucet authority.
+  // mainnet: use the real USDT mint passed via env; never create a faucet.
+  let usdtMint: PublicKey;
+  let faucet: Keypair | null = null;
+  if (cluster === "devnet") {
+    faucet = Keypair.generate();
+    usdtMint = await createMint(
+      provider.connection,
+      (provider.wallet as anchor.Wallet).payer, // fee payer
+      faucet.publicKey, // mint authority
+      null, // freeze authority
+      TOKEN_DECIMALS,
+    );
+    console.log("Mock USDT :", usdtMint.toBase58());
+    console.log("Faucet    :", faucet.publicKey.toBase58());
+  } else {
+    const real = process.env.USDT_MINT;
+    if (!real) {
+      throw new Error("CLUSTER=mainnet requires USDT_MINT env (the real USDT mint address).");
+    }
+    usdtMint = new PublicKey(real);
+    console.log("Real USDT :", usdtMint.toBase58());
+  }
+
+  // --- 2. initialize_protocol (idempotent) ---
+  const existing = await provider.connection.getAccountInfo(configPda);
+  if (existing) {
+    console.log("Config already initialized at", configPda.toBase58(), "- skipping init.");
+  } else {
+    const sig = await program.methods
+      .initializeProtocol()
+      .accounts({
+        authority,
+        config: configPda,
+        mintAuthority: mintAuthPda,
+        chmMint: chmMintPda,
+        usdtMint,
+        tokenProgram: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+        systemProgram: anchor.web3.SystemProgram.programId,
+        rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+      })
+      .rpc();
+    console.log("initialize_protocol tx:", sig);
+  }
+
+  // --- 3. Emit frontend config (src/lib/program/clusters/<cluster>.ts) ---
+  const faucetSecret =
+    faucet === null ? "null" : `[${Array.from(faucet.secretKey).join(",")}]`;
+  const faucetComment =
+    faucet === null
+      ? "  // No faucet on mainnet — a real mint is never publicly mintable."
+      : `  // DEVNET-ONLY mock-USDT faucet authority. This secret is intentionally public:
+  // it can only mint a worthless test token on devnet. Never reuse this pattern
+  // for a real mint or for mainnet.`;
+
+  const out = `// AUTO-GENERATED by anchor/scripts/bootstrap.ts — do not edit by hand.
+// ${cluster} deployment addresses for ChamaChain v2.
+import type { ClusterConfig } from "./types";
+
+export const ${cluster}: ClusterConfig = {
+  CLUSTER: "${cluster}",
+  RPC_ENDPOINT: "${RPC_ENDPOINTS[cluster]}",
+  PROGRAM_ID: "${programId.toBase58()}",
+  CONFIG_PDA: "${configPda.toBase58()}",
+  MINT_AUTHORITY_PDA: "${mintAuthPda.toBase58()}",
+  USDT_MINT: "${usdtMint.toBase58()}",
+  CHM_MINT: "${chmMintPda.toBase58()}",
+  TOKEN_DECIMALS: ${TOKEN_DECIMALS},
+${faucetComment}
+  FAUCET_AUTHORITY_SECRET: ${faucetSecret},
+};
+`;
+  const outPath = path.join(__dirname, `../../src/lib/program/clusters/${cluster}.ts`);
+  fs.mkdirSync(path.dirname(outPath), { recursive: true });
+  fs.writeFileSync(outPath, out);
+  console.log("Wrote frontend config ->", outPath);
+}
+
+main().then(
+  () => process.exit(0),
+  (e) => {
+    console.error(e);
+    process.exit(1);
+  },
+);

@@ -1,0 +1,29 @@
+[toolchain]
+package_manager = "yarn"
+
+[features]
+resolution = true
+skip-lint = false
+
+[programs.localnet]
+chamachain = "8gkPp9gCALdkTvzPVk6LjVw4TRg6iKkzaRLU465y9Gye"
+
+[programs.devnet]
+chamachain = "8gkPp9gCALdkTvzPVk6LjVw4TRg6iKkzaRLU465y9Gye"
+
+# Mainnet is GATED: do not deploy or switch [provider].cluster to mainnet until
+# the runtime-crash fix (Gate 1) is verified AND the security review (Gate 2) is
+# complete. Generate a dedicated mainnet program keypair before the first deploy
+# instead of reusing the devnet id below.
+[programs.mainnet]
+chamachain = "8gkPp9gCALdkTvzPVk6LjVw4TRg6iKkzaRLU465y9Gye"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "devnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "cargo test --manifest-path programs/chamachain/Cargo.toml --features no-entrypoint"

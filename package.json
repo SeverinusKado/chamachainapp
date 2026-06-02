@@ -1,5 +1,5 @@
 {
-  "name": "plena-react-starter-app",
+  "name": "chamachain",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -7,6 +7,7 @@
     "dev": "vite --host",
     "build": "vite build",
     "lint": "eslint .",
+    "typecheck": "tsc --noEmit -p tsconfig.app.json",
     "preview": "vite preview",
     "watch": "vite build --watch"
   },
@@ -46,7 +47,6 @@
     "@solana/wallet-adapter-react-ui": "^0.9.38",
     "@solana/wallet-adapter-wallets": "^0.19.36",
     "@solana/web3.js": "^1.98.2",
-    "@supabase/supabase-js": "^2.57.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
